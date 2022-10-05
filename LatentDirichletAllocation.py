@@ -75,12 +75,12 @@ def latent_dirishlet_allocation(article_words_list, num_topics, filter_words_in_
     
 
     # Build LDA model
-    r = np.random.RandomState(2022)
+    r = np.random.RandomState(42)
     lda_model = gensim.models.LdaMulticore(corpus=bag_of_words_corpus,
                                         id2word=id2word_dictionary,
                                         num_topics=num_topics,
                                         random_state=r,
-                                        passes=50)
+                                        passes=25)
 
     # Print the Keyword in the 10 topics
     # pprint(lda_model.print_topics(num_topics=num_topics, num_words=10))
@@ -91,4 +91,4 @@ def latent_dirishlet_allocation(article_words_list, num_topics, filter_words_in_
     coherence = cm.get_coherence()  
     # print("Coherence: {}".format(coherence))
     # print()
-    return (coherence, topics)
+    return (lda_model, coherence, topics)

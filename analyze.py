@@ -102,22 +102,101 @@ if __name__ == "__main__":
     # print(article_words_list[0])
     # sys.exit(0)
 
-    num_articles = len(article_words_list)
-    num_topics = 4
-    articles_per_topic = num_articles / num_topics
-    filter_words_in_less_then_n_docs = articles_per_topic // 2
-    filter_words_in_more_than_n_percent_of_docs = 0.75
-    print("Num Topics: {}".format(num_topics))
-    print("Total Articles: {}".format(num_articles))
-    print("Articles Per Topic: {}".format(articles_per_topic))
-    print("Articles Above: {}".format(filter_words_in_less_then_n_docs))
-    print("Articles Below: {:.2f}".format(filter_words_in_more_than_n_percent_of_docs*num_articles))
-    print("Word In more than N Articles: {:.2f}%".format(float(filter_words_in_less_then_n_docs*100/num_articles)))
-    print("Word In less than N Articles: {:.2f}%".format(float(filter_words_in_more_than_n_percent_of_docs*100)))
-    print()
-    
-    # LatentDirichletAllocation.latent_dirishlet_allocation(article_words_list, num_topics, filter_words_in_less_then_n_docs, filter_words_in_more_than_n_percent_of_docs)
-
     # LatentDirichletAllocation.optimize_lda(article_words_list, [5,6], [30, 20, 10, 5], [0.55, 0.60, 0.65])
-    LatentDirichletAllocation.optimize_lda(article_words_list, [6], [5], [0.55])
+    # LatentDirichletAllocation.optimize_lda(article_words_list, [6], [5], [0.55])
+
+    num_topics = 6
+    no_below = 25
+    no_above = 0.50
+    lda_model, coherence, _ = LatentDirichletAllocation.latent_dirishlet_allocation(article_words_list, num_topics, no_below, no_above)
+    print("Coherence: {}".format(coherence))
+    topics_map = {}
+    topics = lda_model.show_topics(num_topics=num_topics, num_words=12, formatted=False)
+    for topic in topics:
+        topic_id = topic[0]
+        words_list = topic[1]
+        words_string = " ".join([w[0] for w in words_list])
+        print("{}: {}".format(topic_id, words_string))
+        topics_map[topic_id] = {
+            "words": topic[1],
+            "clean_words": words_string
+        }
+    
+    import gensim
+    import gensim.corpora as corpora
+    id2word_dictionary = corpora.Dictionary(article_words_list)
+    id2word_dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=5000)
+
+    for i, row in df.iterrows():
+        article_word_tokens = row["tokens"]
+        article_bag_of_words = id2word_dictionary.doc2bow(article_word_tokens)
+        article_topic_distribution = lda_model.get_document_topics(article_bag_of_words, per_word_topics=False)
+        max_tuple = max(article_topic_distribution, key=lambda x:x[1])
+        max_topic_id = max_tuple[0]
+        # print(max_topic_id)
+        filepath = row["filepath"]
+        if "articles" not in topics_map[max_topic_id]:
+            topics_map[max_topic_id]["articles"] = []
+        topics_map[max_topic_id]["articles"].append(filepath)
+
+    for key, value in topics_map.items():
+        print("Topic: {} {}".format(key, value["clean_words"]))
+        articles = value["articles"]
+        for a in articles:
+            print(" - {}".format(a))
+    
+    
+    
+    
+    # import gensim
+    # from gensim.test.utils import datapath
+    # temp_file = datapath("lda_model")
+    # # lda_model.save(temp_file)
+    # lda_model = gensim.models.LdaMulticore.load(temp_file)
+
+    # topics = lda_model.show_topics(num_topics=6, num_words=16, formatted=False)
+    # topics_map = {}
+    # for topic in topics:
+    #     topic_id = topic[0]
+    #     words_list = topic[1]
+    #     words_string = " ".join([w[0] for w in words_list])
+    #     print("{}: {}".format(topic_id, words_string))
+    #     topics_map[topic_id] = {
+    #         "words": topic[1]
+    #     }
+    # topics_map[0]["Name"] = "Relationship and Dating Advice"
+    # topics_map[1]["Name"] = "News"
+    # topics_map[2]["Name"] = "Happiness and Philosophy"
+    # topics_map[3]["Name"] = "Sexual Culture"
+    # topics_map[4]["Name"] = "Emotions"
+    # topics_map[5]["Name"] = "Values"
+    
+
+    # import gensim
+    # import gensim.corpora as corpora
+    # id2word_dictionary = corpora.Dictionary(article_words_list)
+    # id2word_dictionary.filter_extremes(no_below=5, no_above=0.55, keep_n=5000)
+    
+    # for i, row in df.iterrows():
+    #     article_word_tokens = row["tokens"]
+    #     article_bag_of_words = id2word_dictionary.doc2bow(article_word_tokens)
+    #     article_topic_distribution = lda_model.get_document_topics(article_bag_of_words, per_word_topics=False)
+    #     max_tuple = max(article_topic_distribution, key=lambda x:x[1])
+    #     max_topic_id = max_tuple[0]
+    #     print(max_topic_id)
+    #     filepath = row["filepath"]
+    #     if "articles" not in topics_map[max_topic_id]:
+    #         topics_map[max_topic_id]["articles"] = []
+    #         print("adding articles")
+    #     topics_map[max_topic_id]["articles"].append(filepath)
+
+    # for key, value in topics_map.items():
+    #     print("Topic: {} {}".format(key, value["Name"]))
+    #     articles = value["articles"]
+    #     for a in articles:
+    #         print(" - {}".format(a))
+
+        
+
+
     
