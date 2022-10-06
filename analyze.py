@@ -102,101 +102,57 @@ if __name__ == "__main__":
     # print(article_words_list[0])
     # sys.exit(0)
 
-    # LatentDirichletAllocation.optimize_lda(article_words_list, [5,6], [30, 20, 10, 5], [0.55, 0.60, 0.65])
-    # LatentDirichletAllocation.optimize_lda(article_words_list, [6], [5], [0.55])
+    lda = LatentDirichletAllocation.LatentDirishletAllocation()
 
     num_topics = 6
     no_below = 25
     no_above = 0.50
-    lda_model, coherence, _ = LatentDirichletAllocation.latent_dirishlet_allocation(article_words_list, num_topics, no_below, no_above)
-    print("Coherence: {}".format(coherence))
-    topics_map = {}
-    topics = lda_model.show_topics(num_topics=num_topics, num_words=12, formatted=False)
-    for topic in topics:
-        topic_id = topic[0]
-        words_list = topic[1]
-        words_string = " ".join([w[0] for w in words_list])
+    id2word_dictionary = lda.create_dictionary(article_words_list, no_below, no_above)
+    lda.create_bag_of_words_corpus()
+    # lda_model = lda.create_model(num_topics)
+    # lda.save_model()
+    lda_model = lda.load_model()
+    coherence = lda.get_coherence_score()
+
+    topics_data = {}
+    topicid_word_tuples = lda_model.show_topics(num_topics=num_topics, num_words=12, formatted=False)
+    for topicid_word_tuple in topicid_word_tuples:
+        topic_id = topicid_word_tuple[0]
+        topic_words_probability_tuples = topicid_word_tuple[1]
+        words_string = " ".join([w[0] for w in topic_words_probability_tuples])
         print("{}: {}".format(topic_id, words_string))
-        topics_map[topic_id] = {
-            "words": topic[1],
+        topics_data[topic_id] = {
+            "topic_words_probability_tuples": topic_words_probability_tuples,
             "clean_words": words_string
         }
     
-    import gensim
-    import gensim.corpora as corpora
-    id2word_dictionary = corpora.Dictionary(article_words_list)
-    id2word_dictionary.filter_extremes(no_below=no_below, no_above=no_above, keep_n=5000)
+    # After manually looking at the topics
+    topics_data[0]["Name"] = "World - News, Society, Culture"
+    topics_data[1]["Name"] = "Brain - Reading, Learning, Wisdom"
+    topics_data[2]["Name"] = "Sex and Dating Women"
+    topics_data[3]["Name"] = "Dealing with Bad Emotions"
+    topics_data[4]["Name"] = "Pursuit of Happiness"
+    topics_data[5]["Name"] = "Relationship Advice"
 
     for i, row in df.iterrows():
         article_word_tokens = row["tokens"]
         article_bag_of_words = id2word_dictionary.doc2bow(article_word_tokens)
-        article_topic_distribution = lda_model.get_document_topics(article_bag_of_words, per_word_topics=False)
-        max_tuple = max(article_topic_distribution, key=lambda x:x[1])
+        article_topic_distribution_tuples = lda_model.get_document_topics(article_bag_of_words, per_word_topics=False)
+        
+        # Get the TopicID that has the greatest probability
+        max_tuple = max(article_topic_distribution_tuples, key=lambda x:x[1])
         max_topic_id = max_tuple[0]
-        # print(max_topic_id)
+        
+        # Add the file to that topic
         filepath = row["filepath"]
-        if "articles" not in topics_map[max_topic_id]:
-            topics_map[max_topic_id]["articles"] = []
-        topics_map[max_topic_id]["articles"].append(filepath)
+        if "articles" not in topics_data[max_topic_id]:
+            topics_data[max_topic_id]["articles"] = []
+        topics_data[max_topic_id]["articles"].append(filepath)
 
-    for key, value in topics_map.items():
+    # 
+    for key, value in topics_data.items():
         print("Topic: {} {}".format(key, value["clean_words"]))
         articles = value["articles"]
         for a in articles:
             print(" - {}".format(a))
-    
-    
-    
-    
-    # import gensim
-    # from gensim.test.utils import datapath
-    # temp_file = datapath("lda_model")
-    # # lda_model.save(temp_file)
-    # lda_model = gensim.models.LdaMulticore.load(temp_file)
-
-    # topics = lda_model.show_topics(num_topics=6, num_words=16, formatted=False)
-    # topics_map = {}
-    # for topic in topics:
-    #     topic_id = topic[0]
-    #     words_list = topic[1]
-    #     words_string = " ".join([w[0] for w in words_list])
-    #     print("{}: {}".format(topic_id, words_string))
-    #     topics_map[topic_id] = {
-    #         "words": topic[1]
-    #     }
-    # topics_map[0]["Name"] = "Relationship and Dating Advice"
-    # topics_map[1]["Name"] = "News"
-    # topics_map[2]["Name"] = "Happiness and Philosophy"
-    # topics_map[3]["Name"] = "Sexual Culture"
-    # topics_map[4]["Name"] = "Emotions"
-    # topics_map[5]["Name"] = "Values"
-    
-
-    # import gensim
-    # import gensim.corpora as corpora
-    # id2word_dictionary = corpora.Dictionary(article_words_list)
-    # id2word_dictionary.filter_extremes(no_below=5, no_above=0.55, keep_n=5000)
-    
-    # for i, row in df.iterrows():
-    #     article_word_tokens = row["tokens"]
-    #     article_bag_of_words = id2word_dictionary.doc2bow(article_word_tokens)
-    #     article_topic_distribution = lda_model.get_document_topics(article_bag_of_words, per_word_topics=False)
-    #     max_tuple = max(article_topic_distribution, key=lambda x:x[1])
-    #     max_topic_id = max_tuple[0]
-    #     print(max_topic_id)
-    #     filepath = row["filepath"]
-    #     if "articles" not in topics_map[max_topic_id]:
-    #         topics_map[max_topic_id]["articles"] = []
-    #         print("adding articles")
-    #     topics_map[max_topic_id]["articles"].append(filepath)
-
-    # for key, value in topics_map.items():
-    #     print("Topic: {} {}".format(key, value["Name"]))
-    #     articles = value["articles"]
-    #     for a in articles:
-    #         print(" - {}".format(a))
-
-        
-
-
     
