@@ -1,9 +1,17 @@
-import pandas as pd
-import sqlite3
 from common import *
 import string
 import re
 import sys
+
+import seaborn as sns
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import datetime
+
+import sqlite3
+import numpy as np
+import pandas as pd
+
 import mywordcloud
 import LatentDirichletAllocation
 
@@ -19,9 +27,6 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.stem import PorterStemmer
-
-from gensim.utils import simple_preprocess
-
 
 
 def get_file_text(filepath):
@@ -71,6 +76,7 @@ def word_count(words_list):
     return word_count
 
 if __name__ == "__main__":
+    
     # Read sqlite query results into a pandas DataFrame
     con = sqlite3.connect(DATABASE_NAME)
     df = pd.read_sql_query("SELECT * from articles", con, index_col ="name")
@@ -134,6 +140,7 @@ if __name__ == "__main__":
     topics_data[4]["Name"] = "Pursuit of Happiness"
     topics_data[5]["Name"] = "Relationship Advice"
 
+    df["topic_id"] = ""
     for i, row in df.iterrows():
         article_word_tokens = row["tokens"]
         article_bag_of_words = id2word_dictionary.doc2bow(article_word_tokens)
@@ -142,6 +149,7 @@ if __name__ == "__main__":
         # Get the TopicID that has the greatest probability
         max_tuple = max(article_topic_distribution_tuples, key=lambda x:x[1])
         max_topic_id = max_tuple[0]
+        row["topic_id"] = max_topic_id
         
         # Add the file to that topic
         filepath = row["filepath"]
@@ -150,9 +158,66 @@ if __name__ == "__main__":
         topics_data[max_topic_id]["articles"].append(filepath)
 
     # 
-    for key, value in topics_data.items():
-        print("Topic: {} {}".format(key, value["clean_words"]))
-        articles = value["articles"]
-        for a in articles:
-            print(" - {}".format(a))
+    # for key, value in topics_data.items():
+    #     print("Topic: {} {}".format(key, value["clean_words"]))
+    #     articles = value["articles"]
+    #     for a in articles:
+    #         print(" - {}".format(a))
     
+    dates_strings = df["date"].to_numpy()
+    dates = [datetime.datetime.strptime(d, '%Y-%m-%d') for d in dates_strings]
+
+    topic_ids = df["topic_id"].to_numpy() + 1
+    topic1_ids = (topic_ids == 1)*1
+    topic1_ids = np.array([id if id != False else None for id in topic1_ids])
+    topic2_ids = (topic_ids == 2)*2
+    topic2_ids = np.array([id if id != False else None for id in topic2_ids])
+    topic3_ids = (topic_ids == 3)*3
+    topic3_ids = np.array([id if id != False else None for id in topic3_ids])
+    topic4_ids = (topic_ids == 4)*4
+    topic4_ids = np.array([id if id != False else None for id in topic4_ids])
+    topic5_ids = (topic_ids == 5)*5
+    topic5_ids = np.array([id if id != False else None for id in topic5_ids])
+    topic6_ids = (topic_ids == 6)*6
+    topic6_ids = np.array([id if id != False else None for id in topic6_ids])
+    # print(np.sum(topic1_ids)+np.sum(topic2_ids)+np.sum(topic3_ids)+np.sum(topic4_ids)+np.sum(topic5_ids)+np.sum(topic6_ids))
+
+    # print(topic1_ids)
+    # print(len(topic1_ids))
+    # print(len(topic3_ids))
+    # print(len(dates))
+
+
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m/%d/%Y'))
+    plt.gca().xaxis.set_major_locator(mdates.MonthLocator(interval=12))
+    plt.scatter(dates,topic1_ids, color="red", label=topics_data[0]["Name"])
+    plt.scatter(dates,topic2_ids, color="blue", label=topics_data[1]["Name"])
+    plt.scatter(dates,topic3_ids, color="green", label=topics_data[2]["Name"])
+    plt.scatter(dates,topic4_ids, color="yellow", label=topics_data[3]["Name"])
+    plt.scatter(dates,topic5_ids, color="orange", label=topics_data[4]["Name"])
+    plt.scatter(dates,topic6_ids, color="purple", label=topics_data[5]["Name"])
+    # plt.set_xticks(x[::2])
+    # plt.set_xticklabels(x[::2], rotation=45)
+    # plt.xticks(np.arange(0, 300, 20.0))
+    plt.gcf().autofmt_xdate()
+    plt.tight_layout()
+    plt.show()
+
+
+
+  
+# # initialize data of lists.
+# data = {
+#     1: topic1_ids*2,
+#     2: topic2_ids*3,
+#     3: topic3_ids*4,
+#     4: topic4_ids*5,
+#     5: topic5_ids*6,
+#     6: topic6_ids*7,
+# }
+  
+# # Creates pandas DataFrame.
+# new_df = pd.DataFrame(data, index=dates_strings)
+
+# sns.catplot(new_df)
+# plt.show()
