@@ -1,5 +1,10 @@
-from common import *
+from bs4 import BeautifulSoup
+import requests, datetime 
+import sqlite3
 import os.path
+
+MANSONNET = "https://markmanson.net"
+DATABASE_NAME = "articles.db"
 
 def get_all_article_metadata():
     article_archive_url = "{}{}".format(MANSONNET, "/archive")
@@ -36,8 +41,8 @@ def get_all_article_metadata():
     
     return articles_metadata
 
-def scrape_article(url, filename):
-    file_path = "articles/{}".format(filename)
+def scrape_article(url, filename, data_path="../data/articles"):
+    file_path = "{}/{}".format(data_path, filename)
 
     # Check Cache
     if os.path.isfile(file_path):
@@ -67,7 +72,7 @@ def get_filename(year, month, day, text):
     return "{}-{}-{}-{}.txt".format(year, month, day, text)
 
 if __name__ == "__main__":
-    con = sqlite3.connect("articles.db")
+    con = sqlite3.connect("../data/articles.db")
     cur = con.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS articles(name, url, date, filepath)")
     
