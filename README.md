@@ -1,7 +1,7 @@
 # Mark Manson Natural Language Processing
 
 ## Overview 
-In this GitHub Repo I explore Mark Manson's popular blog by applying Explporatory Data Analysis and Natural Language Processing techniques. 
+In this GitHub Repo I explore [Mark Manson's popular blog](https://markmanson.net/) by applying Explporatory Data Analysis and Natural Language Processing techniques. 
 
 Below you can see an awesome Word Cloud that I generated using his blog posts. 
 
