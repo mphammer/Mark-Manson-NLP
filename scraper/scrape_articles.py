@@ -7,6 +7,9 @@ MANSONNET = "https://markmanson.net"
 DATABASE_NAME = "articles.db"
 
 def get_all_article_metadata():
+    '''
+    This function scrapes Mark Manon's website's archive page for all the URLs to his articles. It also grabs the date published as metadata.
+    '''
     article_archive_url = "{}{}".format(MANSONNET, "/archive")
     
     hdr = {
@@ -42,6 +45,9 @@ def get_all_article_metadata():
     return articles_metadata
 
 def scrape_article(url, filename, data_path="../data/articles"):
+    '''
+    This function scrapes a webpage that contains an article.
+    '''
     file_path = "{}/{}".format(data_path, filename)
 
     # Check Cache
@@ -69,6 +75,9 @@ def scrape_article(url, filename, data_path="../data/articles"):
     
 
 def get_filename(year, month, day, text):
+    '''
+    Generate a filename to store the article.
+    '''
     return "{}-{}-{}-{}.txt".format(year, month, day, text)
 
 if __name__ == "__main__":
@@ -76,6 +85,7 @@ if __name__ == "__main__":
     cur = con.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS articles(name, url, date, filepath)")
     
+    # Store all articles in a local folder and write the file location to an SQL database
     articles_metadata = get_all_article_metadata()
     for article_path, article_data in articles_metadata.items():
         article_path_clean = article_path.replace("/", "")
