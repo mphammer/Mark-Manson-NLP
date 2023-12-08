@@ -5,6 +5,8 @@ In this GitHub Repo I explore [Mark Manson's popular blog](https://markmanson.ne
 
 Below you can see an awesome Word Cloud that I generated using his blog posts. 
 
-For the full analysis please feel free to check out the jupyter notebook here: [Mark Manson NLP Notebook](./main/analyze.ipynb). <-- Check it out!
+For the full analysis please feel free to check out the jupyter notebook here:   
+
+[Mark Manson NLP Notebook](./main/analyze.ipynb). <-- Check it out!
 
 ![word-cloud](./readme/word-cloud.png)
