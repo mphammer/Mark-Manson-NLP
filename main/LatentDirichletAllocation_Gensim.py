@@ -10,6 +10,10 @@ from gensim.models.coherencemodel import CoherenceModel
 from gensim.test.utils import datapath
 
 # def optimize_lda(article_words_list, num_topics_list, filter_words_in_less_then_n_docs_list, filter_words_in_more_than_n_percent_of_docs_list):
+#     '''
+#     This is a function I hacked together to do a Grid Search before I knew what a Grid Search was.
+#     TODO: I think it's broken and needs refactoring
+#     '''
 #     results = {}
 #     iteration = 0
 #     for num_topics in num_topics_list:
